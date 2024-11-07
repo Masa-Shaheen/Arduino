@@ -1,0 +1,91 @@
+// Define pins for Ultrasonic Sensor
+const int trigPin = 9;
+const int echoPin = 10;
+
+// Define pins for LEDs
+const int greenLED = 2;
+const int yellowLED = 3;
+const int redLED = 4;
+
+// Define pin for Potentiometer
+const int potentiometerPin = A4; // Potentiometer connected to A0
+
+// Distance thresholds
+int greenThreshold = 20;
+int yellowThreshold = 10;
+
+void setup() {
+// Initialize serial communication
+Serial.begin(9600);
+
+// Set pins for Ultrasonic Sensor
+pinMode(trigPin, OUTPUT);
+pinMode(echoPin, INPUT);
+
+// Set pins for LEDs
+pinMode(greenLED, OUTPUT);
+pinMode(yellowLED, OUTPUT);
+pinMode(redLED, OUTPUT);
+
+// Set pin for Potentiometer
+pinMode(potentiometerPin, INPUT);
+}
+
+void loop() {
+// Get distance from the ultrasonic sensor
+int distance = getDistance();
+
+// Adjust thresholds based on potentiometer input
+adjustThresholds();
+
+// Control LEDs based on distance
+if (distance > greenThreshold) {
+digitalWrite(greenLED, HIGH);
+digitalWrite(yellowLED, LOW);
+digitalWrite(redLED, LOW);
+} else if (distance > yellowThreshold && distance <= greenThreshold) {
+digitalWrite(greenLED, LOW);
+digitalWrite(yellowLED, HIGH);
+digitalWrite(redLED, LOW);
+} else {
+digitalWrite(greenLED, LOW);
+digitalWrite(yellowLED, LOW);
+digitalWrite(redLED, HIGH);
+}
+
+// Print the distance and thresholds for debugging
+Serial.print("Distance: ");
+Serial.print(distance);
+Serial.print(" cm, Green Threshold: ");
+Serial.print(greenThreshold);
+Serial.print(" cm, Yellow Threshold: ");
+Serial.println(yellowThreshold);
+
+// Delay to avoid rapid changes
+delay(100);
+}
+
+int getDistance() {
+// Send a 10us pulse to trigger the ultrasonic sensor
+digitalWrite(trigPin, LOW);
+delayMicroseconds(2);
+digitalWrite(trigPin, HIGH);
+delayMicroseconds(10);
+digitalWrite(trigPin, LOW);
+
+// Read the time it takes for the echo to return
+long duration = pulseIn(echoPin, HIGH);
+
+// Calculate the distance in cm
+int distance = duration * 0.034 / 2;
+return distance;
+}
+
+void adjustThresholds() {
+// Read the potentiometer value
+int potValue = analogRead(potentiometerPin);
+
+// Map the potentiometer value to the threshold ranges
+greenThreshold = map(potValue, 0, 1023, 15, 25);
+yellowThreshold = map(potValue, 0, 1023, 5, 15);
+}
